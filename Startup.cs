@@ -1,20 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
+using DeviceApi.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 
 namespace LuneauPortal
 {
@@ -31,11 +24,13 @@ namespace LuneauPortal
         {
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options => {
-                    SecurityKey rsa = services.BuildServiceProvider().GetRequiredService<RsaSecurityKey>();
-
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => {
+                    SecurityKey rsa = services
+                        .BuildServiceProvider()
+                        .GetRequiredService<RsaSecurityKey>();
                     options.IncludeErrorDetails = true;
-
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         IssuerSigningKey = rsa,
@@ -45,29 +40,34 @@ namespace LuneauPortal
                         ValidateAudience = true,
                         ValidateIssuer = true,
                     };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var path = context.HttpContext.Request.Path;
+                            if (!path.StartsWithSegments("/hubs"))
+                                return Task.CompletedTask;
+                            var accessToken = context.Request.Query["access_token"];
+                            context.Token = accessToken;
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSignalR();
             AppSettings appSettings = ConfigureSettings(services);
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Portal API", Version = "v1" });
-            });
-
             services.AddSingleton(provider => {
                 RSA rsa = RSA.Create();
                 rsa.ImportSubjectPublicKeyInfo(
                     source: Convert.FromBase64String(appSettings.Jwt.PublicKey),
-                    bytesRead: out int _
+                    bytesRead: out int tolo0
                 );
-
                 return new RsaSecurityKey(rsa);
             });
-
             ConfigureAuthentication(services);
         }
 
@@ -80,27 +80,19 @@ namespace LuneauPortal
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            app.UseCors(c =>
             {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Portal API V1");
+                c.AllowAnyOrigin();
+                c.AllowAnyMethod();
+                c.AllowAnyHeader();
             });
 
             app.UseRouting();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<RTCHub>("hubs/rtc");
             });
         }
     }

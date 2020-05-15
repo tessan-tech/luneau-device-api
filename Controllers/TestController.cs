@@ -2,26 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
-namespace LuneauPortal.Controllers
+namespace DeviceApi.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
-    [Authorize]
-    public class WeatherForecastController : ControllerBase
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class TestController : ControllerBase
     {
-
-        public WeatherForecastController()
+        [HttpGet("test")]
+        public ActionResult Test()
         {
-        }
-
-        [HttpGet]
-        public string Get()
-        {
-            return "hello";
+            return Ok();
         }
     }
 }
