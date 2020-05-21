@@ -64,7 +64,7 @@ namespace LuneauPortal
                 RSA rsa = RSA.Create();
                 rsa.ImportSubjectPublicKeyInfo(
                     source: Convert.FromBase64String(appSettings.Jwt.PublicKey),
-                    bytesRead: out int tolo0
+                    bytesRead: out int bytesRead
                 );
                 return new RsaSecurityKey(rsa);
             });
