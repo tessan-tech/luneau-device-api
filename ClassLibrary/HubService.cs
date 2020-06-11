@@ -16,48 +16,17 @@ namespace DeviceApi
         {
             HubContext = hubContext;
             CommunicationProtocol = communicationProtocol;
-            communicationProtocol.SetBitmapDelegate((bitmap) =>
-            {
-
-                var ms = new MemoryStream();
-                bitmap.Save(ms, ImageFormat.Jpeg);
-
-                HubContext.Clients.All.SendCoreAsync("image", new object[] { ms.ToArray() });
-
-                Console.WriteLine($"bitmap {bitmap} sent on bridge");
-            });
-
-            PeriodicMessage();
+            CommunicationProtocol.SetSendUrlDelegate(url => HubContext.Clients.All.SendCoreAsync("videoUrl", new object[] { url }));
         }
 
-        public async void PeriodicMessage()
+        public void NotifyUserConnection(string userId)
         {
-            while (true)
-            {
-                await Task.Delay(5000);
-                SendMessage("hello !");
-            }
+            CommunicationProtocol.NotifyUserConnection(userId);
         }
 
-        public void RequestVideo()
+        public void NotifyUserDisconnection(string userId)
         {
-            CommunicationProtocol.RequestVideo("camera1");
-        }
-
-        public void SendMessage(string message)
-        {
-            HubContext.Clients.All.SendCoreAsync("message", new object[] { message });
-        }
-
-        public ItemAddResult AddItem(Item item, int quantity)
-        {
-            return CommunicationProtocol.AddItem(item, quantity);
-        }
-
-        public byte[] ImageToByte(Image img)
-        {
-            ImageConverter converter = new ImageConverter();
-            return (byte[])converter.ConvertTo(img, typeof(byte[]));
+            CommunicationProtocol.NotifyUserDisconnection(userId);
         }
     }
 }

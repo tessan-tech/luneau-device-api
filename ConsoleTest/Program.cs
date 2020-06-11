@@ -14,24 +14,22 @@ namespace ConsoleTest
     class MyCommunicationProtocol : ACommunicationProtocol
     {
 
-        protected override ItemAddResult OnAddItem(Item item, int quantity)
+        /*
+         *  Is called by the dll when an authenticated user joins
+         */
+        protected override void OnUserConnected(string userId)
         {
-            return new ItemAddResult { result = 15, totalPrice = item.price * quantity };
+            Console.WriteLine($"user {userId} connected");
+            // You can use this method to share a video url with connected users
+            // The url can include a random suffix for more security
+            // This is a open mp4 sample link 
+            SendVideoUrl("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
         }
 
-        protected override void OnVideoRequested(string cameraName)
+        protected override void OnUserDiconnected(string userId)
         {
-            string filePath = "./sample.mp4";
-            using (var vFReader = new VideoFileReader())
-            {
-                vFReader.Open(filePath);
-                for (int i = 0; i < vFReader.FrameCount; i++)
-                {
-                    Bitmap bmpBaseOriginal = vFReader.ReadVideoFrame(i);
-                    SendBitmap(bmpBaseOriginal);
-                }
-                vFReader.Close();
-            }
+            Console.WriteLine($"user {userId} disconnected");
+            // Remoke the url you served to the user {userId}
         }
     }
 
