@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Automaton;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DeviceApi
@@ -12,21 +13,43 @@ namespace DeviceApi
     {
         private readonly IHubContext<DeviceHub> HubContext;
         private readonly ACommunicationProtocol CommunicationProtocol;
+
         public HubService(IHubContext<DeviceHub> hubContext, ACommunicationProtocol communicationProtocol)
         {
             HubContext = hubContext;
             CommunicationProtocol = communicationProtocol;
-            CommunicationProtocol.SetSendUrlDelegate(url => HubContext.Clients.All.SendCoreAsync("videoUrl", new object[] { url }));
+            CommunicationProtocol.SetSendStatusDelegate(SendStatus);
+            CommunicationProtocol.SetSendAvailableCommandsDelegate(SendAvailableCommands);
+            CommunicationProtocol.SetSendImageDelegate(SendImage);
+            CommunicationProtocol.SetSendPdfDelegate(SendPdf);
         }
 
-        public void NotifyUserConnection(string userId)
+        private void SendStatus(Status status)
         {
-            CommunicationProtocol.NotifyUserConnection(userId);
+            Send("status", status);
         }
 
-        public void NotifyUserDisconnection(string userId)
+        private async void SendImage(Image image)
         {
-            CommunicationProtocol.NotifyUserDisconnection(userId);
+            var ms = new MemoryStream();
+            image.Save(ms, ImageFormat.Jpeg);
+
+            await Send("image", (object)ms.ToArray());
         }
+
+        private async void SendPdf(FileStream pdf)
+        {
+            var ms = new MemoryStream();
+            await pdf.CopyToAsync(ms);
+            await Send("pdf", (object)ms.ToArray());
+        }
+
+        private void SendAvailableCommands(Command[] commands)
+        {
+            Send("availableCommands", commands.Select(c => c.ToString()));
+        }
+
+        private Task Send(string verb, params object[] objects)
+            => HubContext.Clients.All.SendCoreAsync(verb, objects);
     }
 }
