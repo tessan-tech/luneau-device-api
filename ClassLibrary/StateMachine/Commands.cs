@@ -2,7 +2,7 @@ namespace Automaton
 {
     public sealed class KeyStates
     {
-        public static Command[] Home = { Command.REGISTER_PATIENT, Command.START_EXAMS, Command.POWER_OFF };
+        public static Command[] Home = { Command.REGISTER_PATIENT, Command.START_EXAMS, Command.POWER_OFF};
         public static Command[] ExamsInProgress = { Command.ABORT_EXAMS, Command.UP, Command.DOWN };
     }
 
@@ -13,6 +13,6 @@ namespace Automaton
         START_EXAMS,
         UP,
         DOWN,
-        ABORT_EXAMS,
+        ABORT_EXAMS
     }
 }
