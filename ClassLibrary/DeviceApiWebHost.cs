@@ -23,7 +23,7 @@ namespace DeviceApi
                     configureServices.AddSingleton(communicationProtocol);
                 })
                 .UseStartup<Startup>()
-                .UseUrls("http://10.0.0.6:3001")
+                .UseUrls("http://localhost:3001")
                 .Build()
                 .RunAsync();
         }

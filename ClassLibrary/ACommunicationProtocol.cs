@@ -10,7 +10,7 @@ namespace DeviceApi
     public abstract class ACommunicationProtocol
     {
         private Action<Status> SendStatusDelegate;
-        private Action<Image> SendImageDelegate;
+        private Action<Image, string> SendImageDelegate;
         private Action<FileStream> SendPdfDelegate;
         private Action<Command[]> SendAvailableCommandsDelegate;
 
@@ -19,7 +19,7 @@ namespace DeviceApi
             SendStatusDelegate = action;
         }
 
-        internal void SetSendImageDelegate(Action<Image> action)
+        internal void SetSendImageDelegate(Action<Image, string> action)
         {
             SendImageDelegate = action;
         }
@@ -47,9 +47,9 @@ namespace DeviceApi
             SendStatusDelegate?.Invoke(status);
         }
 
-        public void SendImage(Image image)
+        public void SendImage(Image image, string cameraName)
         {
-            SendImageDelegate?.Invoke(image);
+            SendImageDelegate?.Invoke(image, cameraName);
         }
 
         public void SendPdf(FileStream pdf)

@@ -29,12 +29,12 @@ namespace DeviceApi
             Send("status", status);
         }
 
-        private async void SendImage(Image image)
+        private async void SendImage(Image image, string cameraName)
         {
             var ms = new MemoryStream();
             image.Save(ms, ImageFormat.Jpeg);
 
-            await Send("image", (object)ms.ToArray());
+            await Send("image", (object)ms.ToArray(), cameraName);
         }
 
         private async void SendPdf(FileStream pdf)

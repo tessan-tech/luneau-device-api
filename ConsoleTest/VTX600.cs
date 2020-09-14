@@ -106,7 +106,7 @@ namespace ConsoleTest
                 Protocol.SendStatus(new Status($"FAILED_EXAM", new { Name = examName.ToUpper(), Reason = failureReason[random.Next(3)] }));
                 return;
             }
-            await Task.Delay(4000, token).ContinueWith(task => {});
+            await Task.Delay(4000, token).ContinueWith(task => { });
             if (token.IsCancellationRequested)
             {
                 SendExamAborted(examName);
@@ -120,16 +120,18 @@ namespace ConsoleTest
             Protocol.SendStatus(new Status($"FAILED_EXAM", new { Name = examName.ToUpper(), Reason = "exam was aborted" }));
         }
 
-        public void StartCamera(CancellationToken token)
+        public void StartCamera(CancellationToken token, string fileName)
         {
             Task.Run(async () =>
             {
-                foreach (var image in GetVideoImages("./sample1.mp4"))
+
+                foreach (var image in GetVideoImages($"./{fileName}.mp4"))
                 {
                     if (token.IsCancellationRequested) break;
-                    Protocol.SendImage(image);
+                    Protocol.SendImage(image, fileName);
                     await Task.Delay(50);
                 }
+
             }, token);
         }
 
@@ -140,10 +142,12 @@ namespace ConsoleTest
             return tokenSource.Token;
         }
 
-        private Task WF(CancellationToken token)
+        private async Task WF(CancellationToken token)
         {
-            StartCamera(token);
-            return MockExam("WF", token);
+            StartCamera(token, "sample2");
+            StartCamera(token, "sample1");
+
+            await MockExam("WF", token);
         }
 
         private Task Topo(CancellationToken token)
