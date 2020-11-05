@@ -11,7 +11,7 @@ namespace DeviceApi
     {
         private Action<Status> SendStatusDelegate;
         private Action<Image, string> SendImageDelegate;
-        private Action<FileStream> SendPdfDelegate;
+        private Action<Stream> SendExamResultDelegate;
         private Action<Command[]> SendAvailableCommandsDelegate;
 
         internal void SetSendStatusDelegate(Action<Status> action)
@@ -29,9 +29,9 @@ namespace DeviceApi
             SendAvailableCommandsDelegate = action;
         }
 
-        internal void SetSendPdfDelegate(Action<FileStream> action)
+        internal void SetSendExamResult(Action<Stream> action)
         {
-            SendPdfDelegate = action;
+            SendExamResultDelegate = action;
         }
 
         internal void SubmitCommand(string command, JToken payload) => OnCommand(command, payload);
@@ -52,9 +52,9 @@ namespace DeviceApi
             SendImageDelegate?.Invoke(image, cameraName);
         }
 
-        public void SendPdf(FileStream pdf)
+        public void SendExamResult(Stream result)
         {
-            SendPdfDelegate?.Invoke(pdf);
+            SendExamResultDelegate?.Invoke(result);
         }
 
         public void SendAvailableCommands(Command[] commands)

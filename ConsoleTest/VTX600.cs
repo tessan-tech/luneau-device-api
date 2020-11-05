@@ -32,7 +32,7 @@ namespace ConsoleTest
             var cancellationTokens = input.Exams.Select(e => CreateExamCancellation()).ToArray();
             foreach (Task exam in input.Exams.Select((e, i) => StartExam(e, cancellationTokens[i])))
                 await exam;
-            Protocol.SendPdf(File.OpenRead("./sample.pdf"));
+            Protocol.SendExamResult(new MemoryStream(Encoding.UTF8.GetBytes("<!DOCTYPEhtml><html><body><h1>MyFirstHeading</h1><p>Myfirstparagraph.</p></body></html>")));
             StateMachine.ResetAvailableCommands(KeyStates.Home);
         }
 

@@ -21,7 +21,7 @@ namespace DeviceApi
             CommunicationProtocol.SetSendStatusDelegate(SendStatus);
             CommunicationProtocol.SetSendAvailableCommandsDelegate(SendAvailableCommands);
             CommunicationProtocol.SetSendImageDelegate(SendImage);
-            CommunicationProtocol.SetSendPdfDelegate(SendPdf);
+            CommunicationProtocol.SetSendExamResult(SendExamResult);
         }
 
         private void SendStatus(Status status)
@@ -37,11 +37,11 @@ namespace DeviceApi
             await Send("image", (object)ms.ToArray(), cameraName);
         }
 
-        private async void SendPdf(FileStream pdf)
+        private async void SendExamResult(Stream result)
         {
             var ms = new MemoryStream();
-            await pdf.CopyToAsync(ms);
-            await Send("pdf", (object)ms.ToArray());
+            await result.CopyToAsync(ms);
+            await Send("examResult", (object)ms.ToArray());
         }
 
         private void SendAvailableCommands(Command[] commands)
